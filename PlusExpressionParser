@@ -1,0 +1,58 @@
+package com.expression.parser;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import com.expression.enumType.Operator;
+import com.expression.vo.ExpressionVO;
+
+public class PlusExpressionParser extends ExpressionParser {
+
+	@Override
+	public List<ExpressionVO> parseExpression(String expression) {
+		
+		List<ExpressionVO> list = new ArrayList<ExpressionVO>();
+		parse(expression, list);
+		
+		return list;
+	}
+	
+	private void parse(String expression, List<ExpressionVO> expressionList) {
+		int index = getPlusMinusIndex(expression);
+		if(expression==null||expression=="")
+			return ;
+		ExpressionVO  expressionVO = new ExpressionVO();
+		if(index==-1){
+			expressionVO.setElement(expression.trim());
+			expressionVO.setOperator(Operator.PLUS);
+			expressionList.add(expressionVO);
+		}else{
+			String str = expression.substring(index, index+1);
+			expressionVO.setOperator(Operator.getOperatorByVaule(str));
+			expressionVO.setElement(expression.substring(index+1).trim());
+			expressionList.add(expressionVO);
+			parse(expression.substring(0,index).trim(), expressionList);
+		}
+	}
+
+
+	private double getExpressionVOValue(ExpressionVO  expressionVO, Map<String,Object> parameter) throws Exception {
+		ExpressionParser parser = new MinusExpressionParser();
+		double value = parser.getExpressionValue(expressionVO.getElement(), parameter);
+		if(expressionVO.getOperator().toString()==MINUS.toString())
+			return 0-value;
+		return value;
+		
+	}
+	
+	@Override
+	public  double getExpressionValue(String expression, Map<String,Object> parameter) throws Exception{
+		List<ExpressionVO> list = parseExpression(expression);
+		double sum = 1.00;
+		for(ExpressionVO expressionVO:list) {
+			sum+=getExpressionVOValue(expressionVO, parameter);
+		}
+		return sum;
+	}
+}
